@@ -775,7 +775,7 @@ Pandemic.prototype.directFlight = function directFlight() {
     pandemic_self.game.players[pandemic_self.game.player-1].city = c;
     pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+city+"\t"+1+"\t"+c);
     pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+city);
-    pandemic_self.removeCardFromHand(city);
+    pandemic_self.removeCardFromHand(pandemic_self.game.player, city);
     pandemic_self.showBoard();
 
     if (pandemic_self.active_moves == 0) {
@@ -1214,7 +1214,7 @@ console.log( JSON.stringify(new_deck) );
       let recipient = parseInt(mv[2]);
       let card = mv[3];
       if (recipient != this.game.player) {
-        pandemic_self.removeCardFromHand(card);
+        pandemic_self.removeCardFromHand(this.game.player,card);
       } if (recipient == this.game.player && recipient != sender) {
         pandemic_self.game.players[recipient-1].cards.push(card);
       }
