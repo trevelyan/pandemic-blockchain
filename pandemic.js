@@ -1874,7 +1874,7 @@ Pandemic.prototype.displayVials = function displayVials() {
     $('.vial_yellow').css('background-image','url("/pandemic/images/Vial%20Yellow%20Eradicated.png")');
   }
   if (this.game.state.blue_cure == 1) {
-    $('.vial_blue').css('background-image','url("/pandemic/images/Vial%20Bluew%20Eradicated.png")');
+    $('.vial_blue').css('background-image','url("/pandemic/images/Vial%20Blue%20Eradicated.png")');
   }
   if (this.game.state.black_cure == 1) {
     $('.vial_black').css('background-image','url("/pandemic/images/Vial%20Black%20Eradicated.png")');
