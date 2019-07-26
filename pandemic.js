@@ -1873,20 +1873,17 @@ Pandemic.prototype.displayVials = function displayVials() {
   $('.vial_black').css('left', this.scale(1182)+"px");
 
   if (this.game.state.yellow_cure == 1) {
-    $('.yellow_vial').css('background-image','url("/twilight/images/Vial%20Yellow%20Eradicated.png")');
+    $('.vial_yellow').css('background-image','url("/pandemic/images/Vial%20Yellow%20Eradicated.png")');
   }
   if (this.game.state.blue_cure == 1) {
-    $('.blue_vial').css('background-image','url("/twilight/images/Vial%20Bluew%20Eradicated.png")');
+    $('.vial_blue').css('background-image','url("/pandemic/images/Vial%20Bluew%20Eradicated.png")');
   }
   if (this.game.state.black_cure == 1) {
-    $('.black_vial').css('background-image','url("/twilight/images/Vial%20Black%20Eradicated.png")');
+    $('.vial_black').css('background-image','url("/pandemic/images/Vial%20Black%20Eradicated.png")');
   }
   if (this.game.state.red_cure == 1) {
-    $('.red_vial').css('background-image','url("/twilight/images/Vial%20Red%20Eradicated.png")');
+    $('.vial_red').css('background-image','url("/pandemic/images/Vial%20Red%20Eradicated.png")');
   }
-
-
-  
 
 }
 Pandemic.prototype.displayPlayers = function displayPlayers() {
