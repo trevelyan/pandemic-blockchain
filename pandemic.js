@@ -500,6 +500,7 @@ Pandemic.prototype.discoverCure = function discoverCure() {
     
     for (let i = 0, k = 0; k < research_limit && i < cards.length; i++) {
       if (pandemic_self.game.deck[0].cards[cards[i]].virus == c) {
+        pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+cards[i]);
 	cards.splice(i, 1);
 	i--;
 	k++;
@@ -511,7 +512,16 @@ Pandemic.prototype.discoverCure = function discoverCure() {
     if (c == "blue") { pandemic_self.game.state.blue_cure = 1; }
     if (c == "black") { pandemic_self.game.state.black_cure = 1; }
 
+    pandemic_self.addMove("curevirus\t"+pandemic_self.game.player+"\t"+c);
+
     pandemic_self.showBoard();
+
+    pandemic_self.active_moves--;
+    if (pandemic_self.active_moves == 0) {
+      pandemic_self.endTurn();
+    } else {
+      pandemic_self.playerMakeMove(pandemic_self.active_moves);
+    }
 
   });
 
@@ -691,8 +701,6 @@ Pandemic.prototype.cureDisease = function cureDisease() { // 0 = me
   }
 
 
-
-
   let html  = "Cure disease: ("+pandemic_self.active_moves+" moves)";
   if (this.game.cities[city].virus.blue > 0)     { html += '<li class="card" id="blue">blue</li>'; }
   if (this.game.cities[city].virus.red > 0)      { html += '<li class="card" id="red">red</li>'; }
@@ -773,9 +781,9 @@ Pandemic.prototype.directFlight = function directFlight() {
 
     pandemic_self.active_moves--;
     pandemic_self.game.players[pandemic_self.game.player-1].city = c;
-    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+city+"\t"+1+"\t"+c);
-    pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+city);
-    pandemic_self.removeCardFromHand(pandemic_self.game.player, city);
+    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
+    pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
+    pandemic_self.removeCardFromHand(pandemic_self.game.player, c);
     pandemic_self.showBoard();
 
     if (pandemic_self.active_moves == 0) {
@@ -813,7 +821,8 @@ Pandemic.prototype.shuttleFlight = function shuttleFlight() {
 
     pandemic_self.active_moves--;
     pandemic_self.game.players[pandemic_self.game.player-1].city = c;
-    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+city+"\t"+1+"\t"+c);
+    pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
+    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
     pandemic_self.showBoard();
 
     if (pandemic_self.active_moves == 0) {
@@ -903,6 +912,7 @@ Pandemic.prototype.buildResearchStation = function buildResearchStation(city="")
 
         for (let i = 0; i < player.cards.length; i++) {
           if (player.cards[i] == c) {
+            pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
   	    player.cards.splice(i,1);
 	    i = player.cards.length+2;
           }
@@ -950,6 +960,9 @@ Pandemic.prototype.buildResearchStation = function buildResearchStation(city="")
     } else {
       pandemic_self.game.state.research_stations[pandemic_self.game.state.research_stations.length] = city;
     }
+
+    pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+city);
+    pandemic_self.addMove("buildresearchstation\t"+pandemic_self.game.player+"\t"+city);
 
     for (let i = 0; i < player.cards.length; i++) {
       if (player.cards[i] == city) {
@@ -1196,6 +1209,19 @@ console.log( JSON.stringify(new_deck) );
 
       this.game.queue.splice(qe, 1);
 
+    }
+    if (mv[0] === "curevirus") {
+      let player = parseInt(mv[1]);
+      let virus = mv[2];
+      if (this.game.player != player) {
+
+        if (virus == "yellow") { pandemic_self.game.state.yellow_cure = 1; }
+        if (virus == "red")    { pandemic_self.game.state.red_cure = 1; }
+        if (virus == "blue")   { pandemic_self.game.state.blue_cure = 1; }
+        if (virus == "black")  { pandemic_self.game.state.black_cure = 1; }
+
+      }
+      this.game.queue.splice(qe, 1);
     }
     if (mv[0] === "buildresearchstation") {
       let player = parseInt(mv[1]);
@@ -1554,7 +1580,7 @@ Pandemic.prototype.returnInfectionCards = function returnInfectionCards() {
 
   deck['sanfrancisco'] = { img : "Infection%20Blue%20San%20Francisco.jpg" , virus : "blue" }
   deck['chicago'] =  { img : "Infection%20Blue%20Chicago.jpg" , virus : "blue" }
-  deck['montreal'] =  { img : "Infection%20Blue%20Montreal.jpg" , virus : "blue" };
+  deck['montreal'] =  { img : "Infection%20Blue%20Toronto.jpg" , virus : "blue" };
   deck['newyork'] =  { img : "Infection%20Blue%20New%20York.jpg" , virus : "blue" };
   deck['washington'] =  { img : "Infection%20Blue%20Washington.jpg" , virus : "blue" };
   deck['atlanta'] =  { img : "Infection%20Blue%20Atlanta.jpg" , virus : "blue" };
