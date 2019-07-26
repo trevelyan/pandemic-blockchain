@@ -1251,10 +1251,8 @@ console.log( JSON.stringify(new_deck) );
       this.game.queue.splice(qe, 1);
     }
     if (mv[0] === "move") {
-      if (this.game.player !== parseInt(mv[1])) {
-        pandemic_self.game.players[(parseInt(mv[1])-1)].city = mv[2];
-	pandemic_self.showBoard();
-      }
+      pandemic_self.game.players[(parseInt(mv[1])-1)].city = mv[2];
+      pandemic_self.showBoard();
       this.game.queue.splice(qe, 1);
     }
     if (mv[0] === "cure") {
@@ -1646,7 +1644,7 @@ Pandemic.prototype.returnPlayerCards = function returnPlayerCards() {
 
   deck['sanfrancisco'] = { img : "Card%20Blue%20San%20Francisco.jpg" , name : "San Francisco" , virus : "blue" }
   deck['chicago'] =  { img : "Card%20Blue%20Chicago.jpg" , name : "Chicago" , virus : "blue" }
-  deck['montreal'] =  { img : "Card%20Blue%20Montreal.jpg"  , name : "Montreal" , virus : "blue" };
+  deck['montreal'] =  { img : "Card%20Blue%20Toronto.jpg"  , name : "Montreal" , virus : "blue" };
   deck['newyork'] =  { img : "Card%20Blue%20New%20York.jpg"  , name : "New York" , virus : "blue" };
   deck['washington'] =  { img : "Card%20Blue%20Washington.jpg" , name : "Washington" , virus : "blue" };
   deck['atlanta'] =  { img : "Card%20Blue%20Atlanta.jpg" , name : "Atlanta" , virus : "blue" };
