@@ -113,6 +113,7 @@ Pandemic.prototype.initializeGame = async function initializeGame(game_id) {
   }
   if (this.game.cities == undefined) {
 
+    this.game.events    = this.returnEvents();
     this.game.cities    = this.returnCities();
     this.game.state     = this.returnState();
     this.game.players   = this.returnPlayers((this.game.opponents.length+1));
@@ -203,6 +204,11 @@ Pandemic.prototype.playerTurn = function playerTurn() {
   let pandemic_self = this;
 
   //
+  // reset events
+  //
+  this.game.state.one_quiet_night = 0;
+
+  //
   // next turn
   //
   this.addMove("turn\t"+this.returnNextPlayer(this.game.player));
@@ -237,7 +243,28 @@ Pandemic.prototype.playerDiscardCards = function playerDiscardCards(mycallback) 
   $('.card').off();
   this.updateStatusAndListCards("Pick a card to discard: ");
   $('.card').on('click', function() {
+
     let cid = $(this).attr('id');
+
+    //
+    // if we click to discard an event card, we can play it instead
+    //
+    if (cid.indexOf("event") > -1) {
+      let c = confirm("Do you want to play this event card instead of discarding it?");
+      if (c) {
+	pandemic_self.playEventCard(function () {
+          pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+cid);
+          pandemic_self.removeCardFromHand(pandemic_self.game.player, cid);
+          if (pandemic_self.game.players[pandemic_self.game.player-1].cards.length > pandemic_self.maxHandSize) {
+	    pandemic_self.playerDiscardCards(mycallback);
+	  } else {
+	    mycallback();
+          }
+        });
+	return;
+      }
+    }
+
     pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+cid);
     pandemic_self.removeCardFromHand(pandemic_self.game.player, cid);
     if (pandemic_self.game.players[pandemic_self.game.player-1].cards.length <= pandemic_self.maxHandSize) {
@@ -257,19 +284,26 @@ Pandemic.prototype.removeEvents = function removeEvents() {
 }
 Pandemic.prototype.playerMakeMove = function playerMakeMove(moves=0) {
 
-
   let pandemic_self = this;
   let player = this.game.players[this.game.player-1];
   let city = player.city;
 
   if (moves == 0) { this.endTurn(); return; }
 
-
   this.active_moves = moves;
 
   let html  = "You are the " + player.role + " ("+this.game.cities[player.city].name+"). " + moves +' moves remaining. Choose an action:<p></p><ul>';
       html += '<li class="card" id="move">drive / ferry</li>';
       html += '<li class="card" id="flight">direct flight</li>';
+  
+      if (
+	this.game.players[this.game.player-1].cards.includes("event1") ||
+	this.game.players[this.game.player-1].cards.includes("event2") ||
+	this.game.players[this.game.player-1].cards.includes("event3") ||
+	this.game.players[this.game.player-1].cards.includes("event4") ||
+	this.game.players[this.game.player-1].cards.includes("event5")) {
+        html += '<li class="card" id="eventcard">play event card</li>';
+      }
       if (this.game.players[this.game.player-1].cards.includes(city)) {
         html += '<li class="card" id="flight">charter flight</li>';
       }
@@ -298,6 +332,9 @@ Pandemic.prototype.playerMakeMove = function playerMakeMove(moves=0) {
 
     let action = $(this).attr('id');
 
+    if (action === "eventcard") {
+      pandemic_self.playEventCard();
+    }
     if (action === "move") {
       pandemic_self.movePlayer();
     }
@@ -444,10 +481,12 @@ Pandemic.prototype.canPlayerDiscoverCure = function canPlayerDiscoverCure() {
   if (this.game.players[this.game.player-1].type == 2) { research_limit = 4; }
 
   for (let i = 0; i < cards.length; i++) {
-    if (this.game.deck[0].cards[cards[i]].virus == "yellow") { yellow++; }
-    if (this.game.deck[0].cards[cards[i]].virus == "red") { red++; }
-    if (this.game.deck[0].cards[cards[i]].virus == "black") { black++; }
-    if (this.game.deck[0].cards[cards[i]].virus == "blue") { blue++; }
+    if (this.game.deck[0].cards[cards[i]] != undefined) {
+      if (this.game.deck[0].cards[cards[i]].virus == "yellow") { yellow++; }
+      if (this.game.deck[0].cards[cards[i]].virus == "red") { red++; }
+      if (this.game.deck[0].cards[cards[i]].virus == "black") { black++; }
+      if (this.game.deck[0].cards[cards[i]].virus == "blue") { blue++; }
+    }
   }
 
   if (yellow >= research_limit && this.game.state.yellow_cure == 0) { return 1; }
@@ -456,6 +495,209 @@ Pandemic.prototype.canPlayerDiscoverCure = function canPlayerDiscoverCure() {
   if (red >= research_limit && this.game.state.red_cure == 0) { return 1; }
 
   return 0;
+
+}
+Pandemic.prototype.playEventCard = function playEventCard(mycallback=null) {
+
+  let cards = this.game.players[this.game.player-1].cards;
+  let pandemic_self = this;
+
+  let html = 'Play an event card: <p></p><ul>';
+
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i] == "event1" || cards[i] == "event2" || cards[i] == "event3" || cards[i] == "event4" || cards[i] == "event5") {
+      html += '<li id="'+cards[i]+'" class="card">'+this.game.deck[1].cards[cards[i]].name+'</li>';
+    }
+  }
+  html += '</ul>';
+
+  this.updateStatus(html);
+
+  $('.card').off();
+  $('.card').on('click', function() {
+
+    let id = $(this).attr("id");
+
+    //
+    // AIRLIFT
+    //
+    if (id == "event1") {
+
+      html = 'Pick a pawn to move to another city: <p></p><ul>';
+      for (let i = 0; i < pandemic_self.game.players.length; i++) {
+	html += '<li id="'+(i+1)+'" class="card">Player '+(i+1)+' ('+pandemic_self.game.players[i].role+')</li>'
+      }
+      html += '</ul>';
+      pandemic_self.updateStatus(html);
+
+      $('.card').off();
+      $('.card').on('click', function() {
+
+	let player_to_move = $(this).attr('id');
+	let cities_array = [];
+
+        html = 'Move to which city: <p></p><ul>';
+        for (let key in pandemic_self.game.cities) {
+  	  cities_array.push(key);
+        }
+	cities_array.sort();
+
+        for (let i = 0; i < cities_array.length; i++) {
+  	  html += '<li id="'+cities_array[i]+'" class="card">'+pandemic_self.game.cities[cities_array[i]].name+'</li>'
+        }
+        html += '</ul>';
+
+        pandemic_self.updateStatus(html);
+
+        $('.card').off();
+        $('.card').on('click', function() {
+
+  	  let city_destination = $(this).attr('id');
+
+          pandemic_self.game.players[pandemic_self.game.player-1].city = city_destination;
+          pandemic_self.showBoard();
+	  pandemic_self.addMove("move\t"+player_to_move+"\t"+city_destination);
+	  mycallback();
+
+	});
+      });
+    }
+
+
+    //
+    // RESILIENT POPULATION
+    //
+    if (id == "event2") {
+
+      html = 'Resilient Population: remove a card from the infection discard pile <p></p><ul>';
+      for (let i = 0; i < this.game.state.infection_drawn_length; i++) {
+        html += '<li class="card" id="'+this.game.state.infection_drawn[i]+'">'+this.game.cities[this.game.state.infection_drawn[i]].name+'</li>';
+      }
+      html += '</ul>';
+
+      $('.card').off();
+      $('.card').on('click', function() {
+
+	let id = $(this).attr("id");
+
+	pandemic_self.addMove("resilientpopulation\t"+id);
+	mycallback();
+
+      });
+
+    }
+
+
+    //
+    // ONE QUIET NIGHT
+    //
+    if (id == "event3" || id == "event4" || id == "event5") {
+
+      this.updateLog("One Quiet Night: skipping the next infection stage.");
+      this.game.state.one_quiet_night = 1;
+      mycallback();
+
+    }
+
+
+    //
+    // FORECAST
+    //
+    if (id == "event4") {
+
+      let forecast = [];
+      let forecast2 = [];
+      for (let i = 0; i < 6; i++) {
+	forecast.push(this.apps.crypto.hexToString(this.game.deck[0].crypt[i]));
+      }
+
+      let html = 'These are the top six cards of the infection pile. Put them back on the pile one-by-one: <p></p><ul>';
+      for (let i = 0; i < forecast.length; i++) {
+	html += '<li id="'+forecast[i]+'" class="card">'+this.game.cities[forecast[i]].name+'</li>';
+      }
+      html += '</ul>';
+
+      $('.card').off();
+      $('.card').on('click', function() {
+
+	let x = $(this).attr("id");
+
+	forecast2.push(x);
+	$(this).remove();
+
+	//
+	// when done, refresh
+	//
+	if (forecast2.length == 6) {
+	  let y = "forecast\t6\t";
+	      y += forecast2[5];
+	      y += "\t";
+	      y += forecast2[4];
+	      y += "\t";
+	      y += forecast2[3];
+	      y += "\t";
+	      y += forecast2[2];
+	      y += "\t";
+	      y += forecast2[1];
+	      y += "\t";
+	      y += forecast2[0];
+	  pandemic_self.addMove(y);
+	  mycallback();
+	}
+
+      });
+
+    }
+
+    //
+    // GOVERNMENT GRANT
+    //
+    if (id == "event5") {
+
+      let cities_array = [];
+
+      html = 'Pick a city for a free research station: <p></p><ul>';
+      for (let key in pandemic_self.game.cities) {
+	cities_array.push(key);
+      }
+      cities_array.sort();
+
+      for (let i = 0; i < cities_array.length; i++) {
+	if (!this.game.state.research_stations.includes(cities_array[i])) {
+          html += '<li id="'+cities_array[i]+'" class="card">'+pandemic_self.game.cities[cities_array[i]].name+'</li>'
+	}
+      }
+      html += '</ul>';
+
+      pandemic_self.updateStatus(html);
+
+      $('.card').off();
+      $('.card').on('click', function() {
+
+	let city_for_station = $(this).attr('id');
+
+        if (pandemic_self.game.state.research_stations.length == 6) {
+          pandemic_self.game.state.research_stations[0] = pandemic_self.game.state.research_stations[1];
+          pandemic_self.game.state.research_stations[1] = pandemic_self.game.state.research_stations[2];
+          pandemic_self.game.state.research_stations[2] = pandemic_self.game.state.research_stations[3];
+          pandemic_self.game.state.research_stations[3] = pandemic_self.game.state.research_stations[4];
+          pandemic_self.game.state.research_stations[4] = pandemic_self.game.state.research_stations[5];
+          pandemic_self.game.state.research_stations[5] = city_for_station;
+        } else {
+          pandemic_self.game.state.research_stations[pandemic_self.game.state.research_stations.length] = city_for_station;
+        }
+
+        pandemic_self.addMove("buildresearchstation\t"+pandemic_self.game.player+"\t"+city);
+        pandemic_self.showBoard();
+        mycallback();
+
+      });
+
+
+    }
+
+    return;
+  });
 
 }
 Pandemic.prototype.discoverCure = function discoverCure() {
@@ -834,45 +1076,6 @@ Pandemic.prototype.shuttleFlight = function shuttleFlight() {
 
 }
 
-/*******
-Pandemic.prototype.canPlayerBuildResearchStation = function canPlayerBuildResearchStation() {
-
-  let player = this.game.players[this.game.player-1];
-  let city = player.city;
-
-  if (player.type == 4) {
-    if (player.cards.length > 0) {
-      if (!this.game.state.research_stations.includes(city)) {
-	return 1;
-      }
-    }
-  } else {
-
-    let blue = 0;
-    let yellow = 0;
-    let red = 0;
-    let black = 0;
-
-    let discard_limit = 3;
-
-    for (let i = 0; i < cards.length; i++) {
-      if (this.game.deck[0].cards[cards[i]].virus == "yellow") { yellow++; }
-      if (this.game.deck[0].cards[cards[i]].virus == "red") { red++; }
-      if (this.game.deck[0].cards[cards[i]].virus == "black") { black++; }
-      if (this.game.deck[0].cards[cards[i]].virus == "blue") { blue++; }
-    }
-
-    if (blue > 2 || yellow > 2 || red > 2 || black > 2) {
-      return 1;
-    }
-
-  }
-  
-
-  return 0;
-
-}
-****/
 
 Pandemic.prototype.buildResearchStation = function buildResearchStation(city="") {
 
@@ -1033,6 +1236,23 @@ console.log("QUEUE: " + this.game.queue);
     if (mv[0] === "start") {
       this.game.queue.splice(qe, 1);
     }
+    if (mv[0] === "forecast") {
+      let cards_to_update = parseInt(mv[1]);
+      for (let i = 0; i < cards_to_update; i++) {
+	let newcard = mv[i+2];
+ 	this.updateLog(newcard + " on top of infection pile...");
+	this.game.deck[0].crypt[i] = this.app.crypto.stringToHex(newcard);
+      }
+      this.game.queue.splice(qe, 1);
+    }
+    if (mv[0] === "resilientpopulation") {
+      for (let i = 0; i < this.game.state.infection_drawn.length; i++) {
+ 	if (this.game.state.infection_drawn[i] == mv[1]) {
+	  this.game.state.infection_drawn.splice(i, 1); i--;
+	}
+      }
+      this.game.queue.splice(qe, 1);
+    }
     if (mv[0] === "resolve") {
       if (this.game.queue.length <= 1) { this.game.queue = []; }
       this.game.queue.splice(qe-1, 2);
@@ -1147,12 +1367,15 @@ console.log( JSON.stringify(new_deck) );
       if (this.game.state.infection_rate > 2) { infection_cards = 3; }
       if (this.game.state.infection_rate > 4) { infection_cards = 4; }
 
-      for (let i = 0; i < infection_cards; i++) {
-        this.outbreaks = [];
-        let city   = this.drawInfectionCard();
-        let virus      = this.game.deck[0].cards[city].virus;
-	this.updateLog("Infection cluster in " + this.game.cities[city].name);
-	this.addDiseaseCube(city, virus);
+      if (this.game.state.one_quiet_night == 1) {
+        for (let i = 0; i < infection_cards; i++) {
+          this.outbreaks = [];
+          let city   = this.drawInfectionCard();
+          let virus      = this.game.deck[0].cards[city].virus;
+	  this.updateLog("Infection cluster in " + this.game.cities[city].name);
+  	  this.addDiseaseCube(city, virus);
+        }
+        this.game.state.one_quiet_night = 0;
       }
 
       this.showBoard();
@@ -1206,6 +1429,27 @@ console.log( JSON.stringify(new_deck) );
 	starting_point += 1;
 	starting_point += section_length;
       }
+
+
+      //
+      // add events to deck
+      //
+      let total_events = 0;
+      for (var i in this.game.events) { total_events++; this.game.deck[1].cards[i] = this.game.events[i]; }
+
+      //
+      // shuffle them into the undrawn pile
+      //
+      for (let i = 0; i < total_events; i++) {
+	let cardname = "event"+(i+1);
+	let insertion_point = this.rollDice((this.game.deck[1].crypt.length-1));
+	this.game.deck[1].crypt.splice(insertion_point, 0, this.app.crypto.stringToHex(cardname));	
+      }
+
+console.log("\n\n\nCARDS AS INITED: ");
+for (let i = 0; i < this.game.deck[1].crypt.length; i++) {
+console.log(this.app.crypto.hexToString(this.game.deck[1].crypt[i]));
+}
 
       this.game.queue.splice(qe, 1);
 
@@ -1344,10 +1588,10 @@ Pandemic.prototype.drawInfectionCard = function drawInfectionCard() {
 Pandemic.prototype.triggerOutbreak = function triggerOutbreak(city, virus) {
 
   this.game.state.outbreak_rate++;
+  this.updateLog("Outbreak in " + city);
 
   for (let i = 0; i < this.game.cities[city].neighbours.length; i++) {
     if (!this.outbreaks.includes(this.game.cities[city].neighbours[i])) {
-      this.updateLog("Infecting " + city + " with " + virus);
       this.addDiseaseCube(this.game.cities[city].neighbours[i], virus);
     }
   }
@@ -1440,6 +1684,9 @@ Pandemic.prototype.returnState = function returnState() {
   state.outbreak_rate = 0;
   state.infection_rate = 0;
 
+  // events
+  state.one_quiet_night = 0;
+
   // cards
   state.infection_topcard = "";
   state.player_topcard = "";
@@ -1502,6 +1749,7 @@ Pandemic.prototype.returnPlayers = function returnPlayers(num=1) {
   return players;
 
 }
+
 Pandemic.prototype.returnCities = function returnCities() {
 
   var cities = {};
@@ -1567,6 +1815,21 @@ Pandemic.prototype.returnCities = function returnCities() {
   }
 
   return cities;
+
+}
+
+
+Pandemic.prototype.returnEvents = function returnEvents() {
+
+  var events = {};
+
+  events['event1'] = { img : 'Special%20Event%20-%20Airlift.jpg' , name : 'Airlift' , virus : "" }
+  events['event2'] = { img : 'Special%20Event%20-%20Airlift.jpg' , name : 'Resilient Population' , virus : "" }
+  events['event3'] = { img : 'Special%20Event%20-%20Airlift.jpg' , name : 'One Quiet Night' , virus : "" }
+  events['event4'] = { img : 'Special%20Event%20-%20Airlift.jpg' , name : 'Forecast' , virus : "" }
+  events['event5'] = { img : 'Special%20Event%20-%20Airlift.jpg' , name : 'Government Grant' , virus : "" }
+
+  return events;
 
 }
 
@@ -1664,7 +1927,7 @@ Pandemic.prototype.returnPlayerCards = function returnPlayerCards() {
   deck['saopaulo'] =  { img : "Card%20Yellow%20Sao%20Paulo.jpg" , name : "Sao Paulo" , virus : "yellow" };
   deck['lagos'] =  { img : "Card%20Yellow%20Lagos.jpg" , name : "Lagos" , virus : "yellow" };
   deck['khartoum'] =  { img : "Card%20Yellow%20Khartoum.jpg" , name : "Khartoum" , virus : "yellow" };
-  deck['kinshasa'] =  { img : "Card%20Yellow%20Kinshasa.jpg" , name : "Kinshasa" , virus : "yellow" };
+  deck['kinshasa'] =  { img : "Card%20Yellow%20Kinsasha.jpg" , name : "Kinshasa" , virus : "yellow" };
   deck['johannesburg'] =  { img : "Card%20Yellow%20Johannesburg.jpg" , name : "Johannesburg" , virus : "yellow" };
   deck['algiers'] =  { img : "Card%20Black%20Algiers.JPG" , name : "Algiers" , virus : "black" };
   deck['cairo'] =  { img : "Card%20Black%20Cairo.jpg" , name : "Cairo" , virus : "black" };
