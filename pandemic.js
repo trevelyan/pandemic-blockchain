@@ -808,7 +808,7 @@ Pandemic.prototype.discoverCure = function discoverCure() {
     if (c == "black") { pandemic_self.game.state.black_cure = 1; }
 
     if (pandemic_self.game.state.yellow_cure == 1 && pandemic_self.game.state.red_cure == 1 && pandemic_self.game.state.blue_cure == 1 && pandemic_self.game.state.black_cure == 1) {
-      this.endGame("You win: all diseases cured");
+      pandemic_self.endGame("You win: all diseases cured");
       return;
     }
 
