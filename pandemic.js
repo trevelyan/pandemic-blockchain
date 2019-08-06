@@ -1448,11 +1448,45 @@ console.log( JSON.stringify(new_deck) );
 
       if (this.game.state.one_quiet_night == 0) {
         for (let i = 0; i < infection_cards; i++) {
+
           this.outbreaks = [];
+
           let city   = this.drawInfectionCard();
           let virus      = this.game.deck[0].cards[city].virus;
-	  this.updateLog("Infection cluster in " + this.game.cities[city].name);
-  	  this.addDiseaseCube(city, virus);
+	  let place_virus = 1;
+
+	  if (virus == "blue" && this.game.state.blue_cure == 1) {
+	    let total = 0;
+	    for (let key in this.game.cities) { total += this.game.cities[key].virus.blue; }
+	    if (total > 0) { place_virus = 0; }
+	  }
+
+	  if (virus == "black" && this.game.state.black_cure == 1) {
+	    let total = 0;
+	    for (let key in this.game.cities) { total += this.game.cities[key].virus.black; }
+	    if (total > 0) { place_virus = 0; }
+	  }
+
+	  if (virus == "red" && this.game.state.red_cure == 1) {
+	    let total = 0;
+	    for (let key in this.game.cities) { total += this.game.cities[key].virus.red; }
+	    if (total > 0) { place_virus = 0; }
+	  }
+
+	  if (virus == "yellow" && this.game.state.yellow_cure == 1) {
+	    let total = 0;
+	    for (let key in this.game.cities) { total += this.game.cities[key].virus.yellow; }
+	    if (total > 0) { place_virus = 0; }
+	  }
+
+
+	  if (place_virus == 1) {
+	    this.updateLog("Infection cluster in " + this.game.cities[city].name);
+  	    this.addDiseaseCube(city, virus);
+	  } else {
+	    this.updateLog("Cure prevents infection in " + this.game.cities[city].name);
+	  }
+
         }
         this.game.state.one_quiet_night = 0;
       }
