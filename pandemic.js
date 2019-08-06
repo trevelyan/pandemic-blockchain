@@ -366,10 +366,10 @@ Pandemic.prototype.playerMakeMove = function playerMakeMove(moves=0) {
 
 Pandemic.prototype.shareKnowledge = function shareKnowledge() {
 
+  let pandemic_self = this;
   let player = this.game.players[this.game.player-1];
   let city = player.city;
   let players_in_city = 0;
-  
 
   let exchange_mode = 0; // 1 = giving card
 			 // 0 = taking card
