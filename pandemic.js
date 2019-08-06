@@ -1606,7 +1606,7 @@ console.log(this.app.crypto.hexToString(this.game.deck[1].crypt[i]));
         pandemic_self.game.players[recipient-1].cards.push(card);
       }
       if (this.game.player !== parseInt(mv[1])) {
-        pandemic_self.game.players[(parseInt(mv[1])-1)].city = mv[2];
+        pandemic_self.game.players[(parseInt(mv[1])-1)].city = mv[3];
 	pandemic_self.showBoard();
       }
       this.game.queue.splice(qe, 1);
