@@ -862,13 +862,16 @@ Pandemic.prototype.canPlayerBuildResearchStation = function canPlayerBuildResear
 Pandemic.prototype.returnHopsToCityFromCity = function returnHopsToCityFromCity(fromcity, tocity) {
 
   let hops = 0;
-  let arrived_yet = 0;
   let current_cities = [];
+  let new_cities = [];
   current_cities.push(fromcity);
 
-  while (arrived_yet == 0) {
+  //
+  // graph will eventually close
+  //
+  while (1) {
 
-    let new_cities = [];
+    new_cities = [];
     hops++;
 
     for (let i = 0; i < current_cities.length; i++) {
@@ -1858,7 +1861,7 @@ Pandemic.prototype.returnCities = function returnCities() {
   cities['kinshasa'] = { top : 1080, left : 1275 , neighbours : [ 'lagos', 'khartoum', 'johannesburg' ] , name : "Kinshasa" };
   cities['johannesburg'] = { top : 1270, left : 1385 , neighbours : [ 'kinshasa', 'khartoum' ] , name : "Johannesburg" };
   cities['london'] = { top : 390, left : 1025 , neighbours : [ 'newyork', 'madrid', 'essen', 'paris' ] , name : "London" };
-  cities['madrid'] = { top : 580, left : 1005 , neighbours : [ 'newyork', 'paris', 'london' ] , name : "Madrid" };
+  cities['madrid'] = { top : 580, left : 1005 , neighbours : [ 'newyork', 'paris', 'london' , 'algiers' ] , name : "Madrid" };
   cities['essen'] = { top : 360, left : 1220 , neighbours : [ 'stpetersburg', 'london', 'milan' ] , name : "Essen" };
   cities['paris'] = { top : 485, left : 1170 , neighbours : [ 'london', 'essen', 'madrid', 'milan', 'algiers' ] , name : "Paris" };
   cities['stpetersburg'] = { top : 320, left : 1430 , neighbours : [ 'essen', 'moscow' , 'istanbul' ] , name : "St. Petersburg" };
