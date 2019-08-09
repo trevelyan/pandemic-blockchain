@@ -60,7 +60,7 @@ Pandemic.prototype.handleCardsMenuItem = function handleCardsMenuItem() {
 
   let html = `<div id="menu-container"><div style="margin-bottom: 1em">Select your deck:</div><ul>`;
   for (let i = 0; i <= this.game.opponents.length; i++) {
-    html += `<li class="card" id="${i}">Player ${i+1}</li>`;
+    html += `<li class="card" id="${i}">${this.game.players[i].role} (${(i+1)} - ${this.game.cities[this.game.players[i].city].name})</li>`;
   }
   html += `</ul></div>`
 
@@ -160,9 +160,13 @@ Pandemic.prototype.initializeGame = async function initializeGame(game_id) {
 
 
   //
-  // adjust screen ratio
+  // display the players
   //
-  //$('.city').css('width', this.scale(202)+"px");
+  for (let i = 1; i <= this.game.players.length; i++) {
+    let divname = ".player"+i+"_role_card";
+    let cssvalue = 'url("/pandemic/images/'+this.game.players[i-1].card+'")';
+    $(divname).css('background-image',cssvalue);
+  }
 
 
   //
@@ -845,9 +849,9 @@ Pandemic.prototype.canPlayerBuildResearchStation = function canPlayerBuildResear
   if (this.game.players[this.game.player-1].type == 4) {
     let city = this.game.players[this.game.player-1].city;
     if (!this.game.state.research_stations.includes(city)) {
-      if (this.game.players[this.game.player-1].cards.length > 0) {
+      //if (this.game.players[this.game.player-1].cards.length > 0) {
 	return 1;
-      }
+      //}
     }
   }
 
@@ -1100,9 +1104,25 @@ Pandemic.prototype.directFlight = function directFlight() {
       return;
     }
 
+
+    //
+    // replace older moves
+    //
+    let replaced = 0;
+    for (let i = 0; i < pandemic_self.moves.length; i++) {
+      if (pandemic_self.moves[i].indexOf("move") > -1) {
+        pandemic_self.moves[i] = "move\t"+pandemic_self.game.player+"\t"+c;
+         replaced = 1;
+      }
+    }
+    if (replaced == 0) {
+      pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
+    }
+
+
+
     pandemic_self.active_moves--;
     pandemic_self.game.players[pandemic_self.game.player-1].city = c;
-    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
     pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
     pandemic_self.removeCardFromHand(pandemic_self.game.player, c);
     pandemic_self.showBoard();
@@ -1140,10 +1160,23 @@ Pandemic.prototype.shuttleFlight = function shuttleFlight() {
       return;
     }
 
+    //
+    // replace older moves
+    //
+    let replaced = 0;
+    for (let i = 0; i < pandemic_self.moves.length; i++) {
+      if (pandemic_self.moves[i].indexOf("move") > -1) {
+        pandemic_self.moves[i] = "move\t"+pandemic_self.game.player+"\t"+c;
+         replaced = 1;
+      }
+    }
+    if (replaced == 0) {
+      pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
+    }
+
     pandemic_self.active_moves--;
     pandemic_self.game.players[pandemic_self.game.player-1].city = c;
     pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
-    pandemic_self.addMove("move\t"+pandemic_self.game.player+"\t"+c);
     pandemic_self.showBoard();
 
     if (pandemic_self.active_moves == 0) {
@@ -1169,36 +1202,39 @@ Pandemic.prototype.buildResearchStation = function buildResearchStation(city="")
     let city = player.city;
 
     //
+    // this was originally implemented with spending any card to build, now is free
+    //
     // if player is Operations Expert
     //
     if (player.type == 4) {
 
-      let html  = "Discard any card to build a research station: <ul>";
-      for (let i = 0; i < player.cards.length; i++) {
-        html += '<li class="card" id="'+player.cards[i]+'">'+this.game.cities[player.cards[i]].name+'</li>';
-      }
-      html += '<li class="card" id="stop">cancel</li>';
-      html += '</ul>';
 
-      this.updateStatus(html);
-
-      $('.card').off();
-      $('.card').on('click', function() {
-
-        let c = $(this).attr('id');
-
-        if (c == "stop") {
-          pandemic_self.playerMakeMove(pandemic_self.active_moves);
-          return;
-        }
-
-        for (let i = 0; i < player.cards.length; i++) {
-          if (player.cards[i] == c) {
-            pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
-  	    player.cards.splice(i,1);
-	    i = player.cards.length+2;
-          }
-        }
+      //let html  = "Discard any card to build a research station: <ul>";
+      //for (let i = 0; i < player.cards.length; i++) {
+      //  html += '<li class="card" id="'+player.cards[i]+'">'+this.game.cities[player.cards[i]].name+'</li>';
+      //}
+      //html += '<li class="card" id="stop">cancel</li>';
+      //html += '</ul>';
+      //
+      //this.updateStatus(html);
+      //
+      //$('.card').off();
+      //$('.card').on('click', function() {
+      //
+      //  let c = $(this).attr('id');
+      //
+      //  if (c == "stop") {
+      //    pandemic_self.playerMakeMove(pandemic_self.active_moves);
+      //    return;
+      //  }
+      //
+      //  for (let i = 0; i < player.cards.length; i++) {
+      //    if (player.cards[i] == c) {
+      //      pandemic_self.addMove("discard\t"+pandemic_self.game.player+"\t"+c);
+      //      player.cards.splice(i,1);
+      //    i = player.cards.length+2;
+      //    }
+      //  }
 
         if (pandemic_self.game.state.research_stations.length == 6) {
           pandemic_self.game.state.research_stations[0] = pandemic_self.game.state.research_stations[1];
@@ -1217,7 +1253,9 @@ Pandemic.prototype.buildResearchStation = function buildResearchStation(city="")
         pandemic_self.showBoard();
         pandemic_self.playerMakeMove(pandemic_self.active_moves);
 
-      });   
+      //
+      //});   
+      //
 
       return 0; 
     }
@@ -1353,12 +1391,15 @@ console.log("QUEUE: " + this.game.queue);
     }
     if (mv[0] === "turn") {
 
+      this.highlightActivePlayerTurn(mv[1]);
+
       if (parseInt(mv[1]) == this.game.player) {
         this.playerTurn();
       } else {
 	this.removeEvents();
-	this.updateStatus("You are the "+this.game.players[this.game.player-1].role+" ("+this.game.cities[this.game.players[this.game.player-1].city].name+"). Waiting for Player " + mv[1]);
+	this.updateStatus("You are the "+this.game.players[this.game.player-1].role+" ("+this.game.cities[this.game.players[this.game.player-1].city].name+"). Waiting for Player " + mv[1] + " ("+this.game.players[parseInt(mv[1])].name+")");
       }
+
 
       return 0;
     }
@@ -1521,6 +1562,15 @@ console.log( JSON.stringify(new_deck) );
       let epidemics = 4;
       let undrawn_cards = this.game.deck[1].crypt.length;
       let section_length = Math.floor(undrawn_cards/epidemics);
+
+      //
+      // adjustable difficulty
+      //
+      if (this.game.options.difficulty != undefined) {
+        if (this.game.options.difficulty === "medium") { epidemics = 5; }
+        if (this.game.options.difficulty === "hard") { epidemics = 6; }
+      }
+
 
       //
       // add epidemic cards to deck
@@ -1844,25 +1894,61 @@ Pandemic.prototype.returnPlayers = function returnPlayers(num=1) {
     players[i].cards      = [];
     players[i].type       = 1;
 
-    if (i == 0 || i > 3) {
+    let roles = ['generalist','scientist','medic','operationsexpert'];
+    let role  = roles[(this.rollDice(4)-1)];
+
+    if (i == 0) {
+      if (this.game.options.player1 != undefined) {
+        if (this.game.options.player1 != "random") {
+          role = this.game.options.player1;
+        }
+      }
+    }
+    if (i == 1) {
+      if (this.game.options.player2 != undefined) {
+        if (this.game.options.player2 != "random") {
+          role = this.game.options.player2;
+        }
+      }
+    }
+    if (i == 2) {
+      if (this.game.options.player3 != undefined) {
+        if (this.game.options.player3 != "random") {
+          role = this.game.options.player3;
+        }
+      }
+    }
+    if (i == 3) {
+      if (this.game.options.player4 != undefined) {
+        if (this.game.options.player4 != "random") {
+          role = this.game.options.player4;
+        }
+      }
+    }
+
+    if (role === 'generalist') {
       players[i].role     = "Generalist";
       players[i].pawn     = "Pawn%20Generalist.png";
+      players[i].card     = "Role%20-%20Generalist.jpg";
       players[i].moves    = 5;
       players[i].type     = 1;
     }
-    if (i == 1) {
+    if (role === 'scientist') {
       players[i].role     = "Scientist";
       players[i].pawn     = "Pawn%20Scientist.png";
+      players[i].card     = "Role%20-%20Scientist.jpg";
       players[i].type     = 2;
     }
-    if (i == 2) {
+    if (role === 'medic') {
       players[i].role     = "Medic";
       players[i].pawn     = "Pawn%20Medic.png";
+      players[i].card     = "Role%20-%20Medic.jpg";
       players[i].type     = 3;
     }
-    if (i == 3) {
+    if (role === 'operationsexpert') {
       players[i].role     = "Operations Expert";
       players[i].pawn     = "Pawn%20Operations%20Expert.png";
+      players[i].card     = "Role%20-%20Operations%20Expert.jpg";
       players[i].type     = 4;
     }
 
@@ -2579,5 +2665,87 @@ Pandemic.prototype.removeCardFromHand = function removeCardFromHand(plyr, card) 
   }
 
 }
+
+
+
+
+
+Pandemic.prototype.returnGameOptionsHTML = function returnGameOptionsHTML() {
+
+  return `
+        <h3>Pandemic: </h3>
+
+        <form id="options" class="options">
+
+          <label for="difficulty">Difficulty:</label>
+          <select name="difficulty">
+            <option value="easy">easy</option>
+            <option value="medium" default>not so easy</option>
+            <option value="hard">damn hard</option>
+          </select>
+
+          <label for="player1">Player 1:</label>
+          <select name="player1">
+            <option value="random" default>random</option>
+            <option value="generalist" default>generalist</option>
+            <option value="scientist">scientist</option>
+            <option value="medic">medic</option>
+            <option value="operationsexpert">operations expert</option>
+          </select>
+
+          <label for="player2">Player 2:</label>
+          <select name="player2">
+            <option value="random" default>random</option>
+            <option value="generalist" default>generalist</option>
+            <option value="scientist">scientist</option>
+            <option value="medic">medic</option>
+            <option value="operationsexpert">operations expert</option>
+          </select>
+
+	</form>
+
+	`;
+
+}
+
+
+
+Pandemic.prototype.returnQuickLinkGameOptions = function returnQuickLinkGameOptions(options) {
+
+  let new_options = {};
+  let player1 = "";
+  let player2 = "";
+
+  for (var index in options) {
+    if (index == "player1") {
+      player1 = options[index];
+    }
+    if (index == "player2") {
+      player2 = options[index];
+    }
+  }
+
+  for (var index in options) { new_options[index] = options[index]; }
+  new_options['player1'] = player2;
+  new_options['player2'] = player1;
+
+  return new_options;
+
+}
+
+
+Pandemic.prototype.highlightActivePlayerTurn = function highlightActivePlayerTurn(num=1) {
+
+  for (let i = 1; i <= this.game.players.length; i++) {
+    let active_player = ".player"+i+"_role_card";
+    if (i == num) {
+      $(active_player).css('border','5px solid #FFF');
+    } else {
+      $(active_player).css('border','5px solid #444');
+    }
+  }
+
+}
+
 
 

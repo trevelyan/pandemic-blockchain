@@ -5,6 +5,31 @@
   width: 82px;
   height: 102px;
 }
+.role_cards {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.active_role_card {
+  float:left;
+  width: 243px;
+  height: 343px;
+}
+.role_card {
+  float:left;
+  width: 243px;
+  height: 343px;
+}
+.player1_role_card {
+}
+.player2_role_card {
+}
+.player3_role_card {
+}
+.player4_role_card {
+}
+
+
 .vial_yellow {
   background-image: url("/pandemic/images/Vial%20Yellow.png");
 }
