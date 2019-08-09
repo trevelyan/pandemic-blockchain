@@ -1452,31 +1452,31 @@ console.log( JSON.stringify(new_deck) );
           this.outbreaks = [];
 
           let city   = this.drawInfectionCard();
-          let virus      = this.game.deck[0].cards[city].virus;
+          let virus  = this.game.deck[0].cards[city].virus;
 	  let place_virus = 1;
 
 	  if (virus == "blue" && this.game.state.blue_cure == 1) {
 	    let total = 0;
 	    for (let key in this.game.cities) { total += this.game.cities[key].virus.blue; }
-	    if (total > 0) { place_virus = 0; }
+	    if (total == 0) { place_virus = 0; }
 	  }
 
 	  if (virus == "black" && this.game.state.black_cure == 1) {
 	    let total = 0;
 	    for (let key in this.game.cities) { total += this.game.cities[key].virus.black; }
-	    if (total > 0) { place_virus = 0; }
+	    if (total == 0) { place_virus = 0; }
 	  }
 
 	  if (virus == "red" && this.game.state.red_cure == 1) {
 	    let total = 0;
 	    for (let key in this.game.cities) { total += this.game.cities[key].virus.red; }
-	    if (total > 0) { place_virus = 0; }
+	    if (total == 0) { place_virus = 0; }
 	  }
 
 	  if (virus == "yellow" && this.game.state.yellow_cure == 1) {
 	    let total = 0;
 	    for (let key in this.game.cities) { total += this.game.cities[key].virus.yellow; }
-	    if (total > 0) { place_virus = 0; }
+	    if (total == 0) { place_virus = 0; }
 	  }
 
 
@@ -1895,12 +1895,12 @@ Pandemic.prototype.returnCities = function returnCities() {
   cities['kinshasa'] = { top : 1080, left : 1275 , neighbours : [ 'lagos', 'khartoum', 'johannesburg' ] , name : "Kinshasa" };
   cities['johannesburg'] = { top : 1270, left : 1385 , neighbours : [ 'kinshasa', 'khartoum' ] , name : "Johannesburg" };
   cities['london'] = { top : 390, left : 1025 , neighbours : [ 'newyork', 'madrid', 'essen', 'paris' ] , name : "London" };
-  cities['madrid'] = { top : 580, left : 1005 , neighbours : [ 'newyork', 'paris', 'london' , 'algiers' ] , name : "Madrid" };
+  cities['madrid'] = { top : 580, left : 1005 , neighbours : [ 'newyork', 'paris', 'london' , 'algiers' , 'saopaulo' ] , name : "Madrid" };
   cities['essen'] = { top : 360, left : 1220 , neighbours : [ 'stpetersburg', 'london', 'milan' ] , name : "Essen" };
   cities['paris'] = { top : 485, left : 1170 , neighbours : [ 'london', 'essen', 'madrid', 'milan', 'algiers' ] , name : "Paris" };
   cities['stpetersburg'] = { top : 320, left : 1430 , neighbours : [ 'essen', 'moscow' , 'istanbul' ] , name : "St. Petersburg" };
   cities['milan'] = { top : 450, left : 1300 , neighbours : [ 'essen', 'istanbul', 'paris' ] , name : "Milan" };
-  cities['algiers'] = { top : 685, left : 1220 , neighbours : [ 'madrid', 'paris', 'cairo', 'istanbul', 'cairo' ] , name : "Algiers" };
+  cities['algiers'] = { top : 685, left : 1220 , neighbours : [ 'madrid', 'paris', 'cairo', 'istanbul' ] , name : "Algiers" };
   cities['cairo'] = { top : 720, left : 1360 , neighbours : [ 'khartoum', 'algiers', 'istanbul', 'baghdad', 'riyadh' ] , name : "Cairo" };
   cities['istanbul'] = { top : 560, left : 1385 , neighbours : [ 'stpetersburg', 'milan', 'algiers', 'cairo', 'baghdad', 'moscow' ] , name : "Istanbul" };
   cities['moscow'] = { top : 450, left : 1535 , neighbours : [ 'stpetersburg', 'tehran', 'istanbul' ] , name : "Moscow" };
@@ -1909,8 +1909,8 @@ Pandemic.prototype.returnCities = function returnCities() {
   cities['tehran'] = { top : 540, left : 1665 , neighbours : [ 'moscow', 'karachi', 'baghdad', 'delhi' ] , name : "Tehran" };
   cities['karachi'] = { top : 720, left : 1705 , neighbours : [ 'baghdad', 'tehran', 'delhi', 'riyadh', 'mumbai' ] , name : "Karachi" };
   cities['mumbai'] = { top : 865, left : 1720 , neighbours : [ 'chennai', 'karachi', 'delhi' ] , name : "Mumbai" };
-  cities['delhi'] = { top : 670, left : 1845 , neighbours : [ 'tehran', 'karachi', 'mumbai', 'chennai' ] , name : "Delhi" };
-  cities['chennai'] = { top : 965, left : 1870 , neighbours : [ 'mumbai', 'delhi', 'kolkata', 'bangkok' ] , name : "Chennai" };
+  cities['delhi'] = { top : 670, left : 1845 , neighbours : [ 'tehran', 'karachi', 'mumbai', 'chennai' , 'kolkata' ] , name : "Delhi" };
+  cities['chennai'] = { top : 965, left : 1870 , neighbours : [ 'mumbai', 'delhi', 'kolkata', 'bangkok', 'jakarta' ] , name : "Chennai" };
   cities['kolkata'] = { top : 715, left : 1975 , neighbours : [ 'delhi', 'chennai', 'bangkok', 'hongkong' ] , name : "Kolkata" };
   cities['bangkok'] = { top : 880, left : 2005 , neighbours : [ 'kolkata', 'hongkong', 'chennai', 'jakarta', 'hochiminhcity' ] , name : "Bangkok" };
   cities['jakarta'] = { top : 1130, left : 2005 , neighbours : [ 'chennai', 'bangkok', 'hochiminhcity', 'sydney' ] , name : "Jakarta" };
